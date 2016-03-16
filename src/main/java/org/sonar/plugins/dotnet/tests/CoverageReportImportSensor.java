@@ -20,6 +20,10 @@
 package org.sonar.plugins.dotnet.tests;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.Sensor;
@@ -27,26 +31,37 @@ import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.InputFile.Type;
+import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.CoverageMeasuresBuilder;
 import org.sonar.api.measures.Measure;
+import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Project;
-
-import java.io.File;
-import java.util.Map;
 
 public class CoverageReportImportSensor implements Sensor {
 
   private static final Logger LOG = LoggerFactory.getLogger(CoverageReportImportSensor.class);
 
+  private static final Map<Metric, Metric> INTEGRATION_TEST_METRICS_MAP = ImmutableMap.<Metric, Metric>builder()
+    .put(CoreMetrics.LINES_TO_COVER, CoreMetrics.IT_LINES_TO_COVER)
+    .put(CoreMetrics.UNCOVERED_LINES, CoreMetrics.IT_UNCOVERED_LINES)
+    .put(CoreMetrics.COVERAGE_LINE_HITS_DATA, CoreMetrics.IT_COVERAGE_LINE_HITS_DATA)
+    .put(CoreMetrics.CONDITIONS_TO_COVER, CoreMetrics.IT_CONDITIONS_TO_COVER)
+    .put(CoreMetrics.UNCOVERED_CONDITIONS, CoreMetrics.IT_UNCOVERED_CONDITIONS)
+    .put(CoreMetrics.COVERED_CONDITIONS_BY_LINE, CoreMetrics.IT_COVERED_CONDITIONS_BY_LINE)
+    .put(CoreMetrics.CONDITIONS_BY_LINE, CoreMetrics.IT_CONDITIONS_BY_LINE)
+    .build();
+
   private final WildcardPatternFileProvider wildcardPatternFileProvider = new WildcardPatternFileProvider(new File("."), File.separator);
   private final CoverageConfiguration coverageConf;
   private final CoverageAggregator coverageAggregator;
   private final FileSystem fs;
+  private final boolean isIntegrationTest;
 
-  public CoverageReportImportSensor(CoverageConfiguration coverageConf, CoverageAggregator coverageAggregator, FileSystem fs) {
+  public CoverageReportImportSensor(CoverageConfiguration coverageConf, CoverageAggregator coverageAggregator, FileSystem fs, boolean isIntegrationTest) {
     this.coverageConf = coverageConf;
     this.coverageAggregator = coverageAggregator;
     this.fs = fs;
+    this.isIntegrationTest = isIntegrationTest;
   }
 
   @Override
@@ -67,21 +82,34 @@ public class CoverageReportImportSensor implements Sensor {
     for (String filePath : coverage.files()) {
       InputFile inputFile = fs.inputFile(fs.predicates().and(fs.predicates().hasType(Type.MAIN), fs.predicates().hasAbsolutePath(filePath)));
 
-      if (inputFile != null) {
-        if (coverageConf.languageKey().equals(inputFile.language())) {
-          coverageMeasureBuilder.reset();
-          for (Map.Entry<Integer, Integer> entry : coverage.hits(filePath).entrySet()) {
-            coverageMeasureBuilder.setHits(entry.getKey(), entry.getValue());
-          }
-
-          for (Measure measure : coverageMeasureBuilder.createMeasures()) {
-            context.saveMeasure(inputFile, measure);
-          }
-        }
-      } else {
+      if (inputFile == null) {
         LOG.debug("Code coverage will not be imported for the following file outside of SonarQube: " + filePath);
+        continue;
+      }
+
+      if (!coverageConf.languageKey().equals(inputFile.language())) {
+        continue;
+      }
+
+      coverageMeasureBuilder.reset();
+      for (Map.Entry<Integer, Integer> entry : coverage.hits(filePath).entrySet()) {
+        coverageMeasureBuilder.setHits(entry.getKey(), entry.getValue());
+      }
+
+      for (Measure measure : coverageMeasureBuilder.createMeasures()) {
+        if (isIntegrationTest) {
+          convertToIntegrationTestMeasure(measure);
+        }
+        context.saveMeasure(inputFile, measure);
       }
     }
+  }
+
+  private static void convertToIntegrationTestMeasure(Measure measure) {
+    Metric metric = measure.getMetric();
+    Metric itMetric = INTEGRATION_TEST_METRICS_MAP.get(metric);
+    Preconditions.checkNotNull(itMetric, "Could not map metric \"" + itMetric.getKey() + "\" to an integration test one.");
+    measure.setMetric(itMetric);
   }
 
 }

@@ -21,6 +21,7 @@ package org.sonar.plugins.dotnet.tests;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.util.List;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -33,8 +34,6 @@ import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Measure;
 import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Project;
-
-import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -51,14 +50,27 @@ public class CoverageReportImportSensorTest {
     CoverageAggregator coverageAggregator = mock(CoverageAggregator.class);
 
     when(coverageAggregator.hasCoverageProperty()).thenReturn(true);
-    assertThat(new CoverageReportImportSensor(coverageConf, coverageAggregator, mock(FileSystem.class)).shouldExecuteOnProject(project)).isTrue();
+    assertThat(new CoverageReportImportSensor(coverageConf, coverageAggregator, mock(FileSystem.class), false).shouldExecuteOnProject(project)).isTrue();
 
     when(coverageAggregator.hasCoverageProperty()).thenReturn(false);
-    assertThat(new CoverageReportImportSensor(coverageConf, coverageAggregator, mock(FileSystem.class)).shouldExecuteOnProject(project)).isFalse();
+    assertThat(new CoverageReportImportSensor(coverageConf, coverageAggregator, mock(FileSystem.class), false).shouldExecuteOnProject(project)).isFalse();
   }
 
   @Test
   public void analyze() {
+    List<Measure> values = computeCoverageMeasures(false);
+    checkMeasure(values.get(0), CoreMetrics.LINES_TO_COVER, 2.0);
+    checkMeasure(values.get(1), CoreMetrics.UNCOVERED_LINES, 1.0);
+  }
+
+  @Test
+  public void analyzeIntegrationTests() {
+    List<Measure> values = computeCoverageMeasures(true);
+    checkMeasure(values.get(0), CoreMetrics.IT_LINES_TO_COVER, 2.0);
+    checkMeasure(values.get(1), CoreMetrics.IT_UNCOVERED_LINES, 1.0);
+  }
+
+  private static List<Measure> computeCoverageMeasures(boolean isIntegrationTest) {
     Coverage coverage = mock(Coverage.class);
     when(coverage.files()).thenReturn(ImmutableSet.of("Foo.cs", "Bar.cs", "Baz.java"));
     when(coverage.hits("Foo.cs")).thenReturn(ImmutableMap.<Integer, Integer>builder()
@@ -83,7 +95,7 @@ public class CoverageReportImportSensorTest {
 
     CoverageConfiguration coverageConf = new CoverageConfiguration("cs", "", "", "", "");
 
-    new CoverageReportImportSensor(coverageConf, coverageAggregator, fs).analyze(context, coverage);
+    new CoverageReportImportSensor(coverageConf, coverageAggregator, fs, isIntegrationTest).analyze(context, coverage);
 
     verify(coverageAggregator).aggregate(Mockito.any(WildcardPatternFileProvider.class), Mockito.eq(coverage));
     verify(context, Mockito.times(3)).saveMeasure(Mockito.any(InputFile.class), Mockito.any(Measure.class));
@@ -91,9 +103,7 @@ public class CoverageReportImportSensorTest {
     ArgumentCaptor<Measure> captor = ArgumentCaptor.forClass(Measure.class);
     verify(context, Mockito.times(3)).saveMeasure(Mockito.eq(inputFile), captor.capture());
 
-    List<Measure> values = captor.getAllValues();
-    checkMeasure(values.get(0), CoreMetrics.LINES_TO_COVER, 2.0);
-    checkMeasure(values.get(1), CoreMetrics.UNCOVERED_LINES, 1.0);
+    return captor.getAllValues();
   }
 
   private static void checkMeasure(Measure measure, Metric metric, Double value) {
