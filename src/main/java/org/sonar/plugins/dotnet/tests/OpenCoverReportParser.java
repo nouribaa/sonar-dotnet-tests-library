@@ -20,12 +20,11 @@
 package org.sonar.plugins.dotnet.tests;
 
 import com.google.common.collect.Maps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenCoverReportParser implements CoverageParser {
 
@@ -95,8 +94,13 @@ public class OpenCoverReportParser implements CoverageParser {
       int line = xmlParserHelper.getRequiredIntAttribute("sl");
       int vc = xmlParserHelper.getRequiredIntAttribute("vc");
 
-      if (files.containsKey(fileRef)) {
-        coverage.addHits(files.get(fileRef), line, vc);
+      String fileId = xmlParserHelper.getAttribute("fileid");
+      if (fileId == null) {
+        fileId = fileRef;
+      }
+
+      if (files.containsKey(fileId)) {
+        coverage.addHits(files.get(fileId), line, vc);
       }
     }
 
