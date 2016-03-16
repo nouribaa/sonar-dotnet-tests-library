@@ -48,7 +48,7 @@ public class XUnitTestResultsFileParser implements UnitTestResultsParser {
       try {
         xmlParserHelper = new XmlParserHelper(file);
 
-        String tag = xmlParserHelper.nextTag();
+        String tag = xmlParserHelper.nextStartTag();
         if (!"assemblies".equals(tag) && !"assembly".equals(tag)) {
           throw xmlParserHelper.parseError("Expected either an <assemblies> or an <assembly> root tag, but got <" + tag + "> instead.");
         }
@@ -57,7 +57,7 @@ public class XUnitTestResultsFileParser implements UnitTestResultsParser {
           if ("assembly".equals(tag)) {
             handleAssemblyTag();
           }
-        } while ((tag = xmlParserHelper.nextTag()) != null);
+        } while ((tag = xmlParserHelper.nextStartTag()) != null);
       } finally {
         if (xmlParserHelper != null) {
           xmlParserHelper.close();
@@ -71,8 +71,9 @@ public class XUnitTestResultsFileParser implements UnitTestResultsParser {
       int failed = xmlParserHelper.getRequiredIntAttribute("failed");
       int skipped = xmlParserHelper.getRequiredIntAttribute("skipped");
       int errors = xmlParserHelper.getIntAttributeOrZero("errors");
+      double executionTime = xmlParserHelper.getRequiredDoubleAttribute("time") * 1000;
 
-      unitTestResults.add(total, passed, skipped, failed, errors);
+      unitTestResults.add(total, passed, skipped, failed, errors, executionTime);
     }
 
   }

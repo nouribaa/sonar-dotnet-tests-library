@@ -63,7 +63,7 @@ public class NCover3ReportParser implements CoverageParser {
 
     private void dispatchTags() {
       String tagName;
-      while ((tagName = xmlParserHelper.nextTag()) != null) {
+      while ((tagName = xmlParserHelper.nextStartTag()) != null) {
         if ("doc".equals(tagName)) {
           handleDocTag();
         } else if ("seqpnt".equals(tagName)) {

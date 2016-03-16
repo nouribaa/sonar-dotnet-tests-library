@@ -64,7 +64,7 @@ public class OpenCoverReportParser implements CoverageParser {
 
     private void dispatchTags() {
       String tagName;
-      while ((tagName = xmlParserHelper.nextTag()) != null) {
+      while ((tagName = xmlParserHelper.nextStartTag()) != null) {
         if ("File".equals(tagName)) {
           handleFileTag();
         } else if ("FileRef".equals(tagName)) {

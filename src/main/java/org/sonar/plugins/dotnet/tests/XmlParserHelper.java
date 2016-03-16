@@ -53,7 +53,7 @@ public class XmlParserHelper {
   }
 
   public void checkRootTag(String name) {
-    String rootTag = nextTag();
+    String rootTag = nextStartTag();
 
     if (!name.equals(rootTag)) {
       throw parseError("Missing root element <" + name + ">");
@@ -61,11 +61,29 @@ public class XmlParserHelper {
   }
 
   @Nullable
-  public String nextTag() {
+  public String nextStartTag() {
     try {
       while (stream.hasNext()) {
         if (stream.next() == XMLStreamConstants.START_ELEMENT) {
           return stream.getLocalName();
+        }
+      }
+
+      return null;
+    } catch (XMLStreamException e) {
+      throw new IllegalStateException("Error while parsing the XML file: " + file.getAbsolutePath(), e);
+    }
+  }
+
+  @Nullable
+  public String nextStartOrEndTag() {
+    try {
+      while (stream.hasNext()) {
+        int next = stream.next();
+        if (next == XMLStreamConstants.START_ELEMENT) {
+          return "<" + stream.getLocalName() + ">";
+        } else if (next == XMLStreamConstants.END_ELEMENT) {
+          return "</" + stream.getLocalName() + ">";
         }
       }
 
@@ -97,6 +115,15 @@ public class XmlParserHelper {
       return Integer.parseInt(value);
     } catch (NumberFormatException e) {
       throw parseError("Expected an integer instead of \"" + value + "\" for the attribute \"" + name + "\"");
+    }
+  }
+
+  public double getRequiredDoubleAttribute(String name) {
+    String value = getRequiredAttribute(name);
+    try {
+      return Double.parseDouble(value);
+    } catch (NumberFormatException e) {
+      throw parseError("Expected an double instead of \"" + value + "\" for the attribute \"" + name + "\"");
     }
   }
 

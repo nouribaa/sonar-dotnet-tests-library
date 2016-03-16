@@ -66,6 +66,7 @@ public class XUnitTestResultsFileParserTest {
     assertThat(results.skipped()).isEqualTo(4);
     assertThat(results.failures()).isEqualTo(3);
     assertThat(results.errors()).isEqualTo(5);
+    assertThat(results.executionTime()).isEqualTo(227 + 228);
   }
 
   @Test

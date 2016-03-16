@@ -19,6 +19,9 @@
  */
 package org.sonar.plugins.dotnet.tests;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+
 public class UnitTestResults {
 
   private int tests;
@@ -26,13 +29,21 @@ public class UnitTestResults {
   private int skipped;
   private int failures;
   private int errors;
+  private Double executionTime;
 
-  public void add(int tests, int passed, int skipped, int failures, int errors) {
+  public void add(int tests, int passed, int skipped, int failures, int errors, @Nullable Double executionTime) {
     this.tests += tests;
     this.passed += passed;
     this.skipped += skipped;
     this.failures += failures;
     this.errors += errors;
+
+    if (executionTime != null) {
+      if (this.executionTime == null) {
+        this.executionTime = 0d;
+      }
+      this.executionTime += executionTime;
+    }
   }
 
   public double tests() {
@@ -53,6 +64,11 @@ public class UnitTestResults {
 
   public double errors() {
     return errors;
+  }
+
+  @CheckForNull
+  public Double executionTime() {
+    return executionTime;
   }
 
 }

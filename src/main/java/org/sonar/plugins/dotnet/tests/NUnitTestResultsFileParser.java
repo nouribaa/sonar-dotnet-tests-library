@@ -19,10 +19,10 @@
  */
 package org.sonar.plugins.dotnet.tests;
 
+import java.io.File;
+import javax.annotation.CheckForNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
 
 public class NUnitTestResultsFileParser implements UnitTestResultsParser {
 
@@ -72,7 +72,33 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
       int passed = total - errors - failures - inconclusive;
       int skipped = inconclusive + ignored;
 
-      unitTestResults.add(tests, passed, skipped, failures, errors);
+      Double executionTime = readExecutionTimeFromDirectlyNestedTestSuiteTags();
+
+      unitTestResults.add(tests, passed, skipped, failures, errors, executionTime);
+    }
+
+    @CheckForNull
+    private Double readExecutionTimeFromDirectlyNestedTestSuiteTags() {
+      Double executionTime = null;
+
+      String tag;
+      int level = 0;
+      while ((tag = xmlParserHelper.nextStartOrEndTag()) != null) {
+        if ("<test-suite>".equals(tag)) {
+          level++;
+
+          if (level == 1) {
+            if (executionTime == null) {
+              executionTime = 0d;
+            }
+            executionTime += xmlParserHelper.getRequiredDoubleAttribute("time") * 1000;
+          }
+        } else if ("</test-suite>".equals(tag)) {
+          level--;
+        }
+      }
+
+      return executionTime;
     }
   }
 

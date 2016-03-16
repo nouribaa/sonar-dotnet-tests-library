@@ -19,11 +19,12 @@
  */
 package org.sonar.plugins.dotnet.tests;
 
+import java.io.File;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class XmlParserHelperTest {
 
@@ -35,7 +36,28 @@ public class XmlParserHelperTest {
     thrown.expectMessage("Error while parsing the XML file: ");
     thrown.expectMessage("invalid_prolog.txt");
 
-    new XmlParserHelper(new File("src/test/resources/xml_parser_helper/invalid_prolog.txt")).nextTag();
+    new XmlParserHelper(new File("src/test/resources/xml_parser_helper/invalid_prolog.txt")).nextStartTag();
+  }
+
+  @Test
+  public void nextStartOrEndTag() {
+    XmlParserHelper xml = new XmlParserHelper(new File("src/test/resources/xml_parser_helper/valid.xml"));
+    assertThat(xml.nextStartOrEndTag()).isEqualTo("<foo>");
+    assertThat(xml.nextStartOrEndTag()).isEqualTo("<bar>");
+    assertThat(xml.nextStartOrEndTag()).isEqualTo("</bar>");
+    assertThat(xml.nextStartOrEndTag()).isEqualTo("</foo>");
+    assertThat(xml.nextStartOrEndTag()).isNull();
+  }
+
+  @Test
+  public void getRequiredDoubleAttribute() {
+    XmlParserHelper xml = new XmlParserHelper(new File("src/test/resources/xml_parser_helper/valid.xml"));
+    xml.nextStartTag();
+    assertThat(xml.getRequiredDoubleAttribute("myDouble")).isEqualTo(0.123);
+
+    thrown.expectMessage("valid.xml");
+    thrown.expectMessage("Expected an double instead of \"hello\" for the attribute \"myString\"");
+    xml.getRequiredDoubleAttribute("myString");
   }
 
 }

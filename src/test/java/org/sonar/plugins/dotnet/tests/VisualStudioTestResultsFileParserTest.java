@@ -58,6 +58,7 @@ public class VisualStudioTestResultsFileParserTest {
     assertThat(results.skipped()).isEqualTo(11);
     assertThat(results.failures()).isEqualTo(14);
     assertThat(results.errors()).isEqualTo(3);
+    assertThat(results.executionTime()).isEqualTo(816d);
   }
 
   @Test

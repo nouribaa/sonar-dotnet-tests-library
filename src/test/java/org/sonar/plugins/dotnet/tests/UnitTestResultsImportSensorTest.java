@@ -56,6 +56,7 @@ public class UnitTestResultsImportSensorTest {
     when(results.skipped()).thenReturn(1.0);
     when(results.failures()).thenReturn(2.0);
     when(results.errors()).thenReturn(3.0);
+    when(results.executionTime()).thenReturn(321.0);
 
     UnitTestResultsAggregator unitTestResultsAggregator = mock(UnitTestResultsAggregator.class);
     SensorContext context = mock(SensorContext.class);
@@ -71,6 +72,7 @@ public class UnitTestResultsImportSensorTest {
     verify(context).saveMeasure(CoreMetrics.SKIPPED_TESTS, 1.0);
     verify(context).saveMeasure(CoreMetrics.TEST_FAILURES, 2.0);
     verify(context).saveMeasure(CoreMetrics.TEST_ERRORS, 3.0);
+    verify(context).saveMeasure(CoreMetrics.TEST_EXECUTION_TIME, 321.0);
   }
 
   @Test
@@ -83,6 +85,7 @@ public class UnitTestResultsImportSensorTest {
     when(results.skipped()).thenReturn(1.0);
     when(results.failures()).thenReturn(2.0);
     when(results.errors()).thenReturn(3.0);
+    when(results.executionTime()).thenReturn(null);
     when(unitTestResultsAggregator.aggregate(Mockito.any(WildcardPatternFileProvider.class), Mockito.any(UnitTestResults.class))).thenReturn(results);
 
     new UnitTestResultsImportSensor(unitTestResultsAggregator).analyze(context, results);
@@ -92,6 +95,7 @@ public class UnitTestResultsImportSensorTest {
     verify(context).saveMeasure(CoreMetrics.SKIPPED_TESTS, 1.0);
     verify(context).saveMeasure(CoreMetrics.TEST_FAILURES, 2.0);
     verify(context).saveMeasure(CoreMetrics.TEST_ERRORS, 3.0);
+    verify(context, Mockito.never()).saveMeasure(Mockito.eq(CoreMetrics.TEST_EXECUTION_TIME), Mockito.anyDouble());
     verify(context, Mockito.never()).saveMeasure(Mockito.eq(CoreMetrics.TEST_SUCCESS_DENSITY), Mockito.anyDouble());
   }
 

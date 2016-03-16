@@ -19,11 +19,10 @@
  */
 package org.sonar.plugins.dotnet.tests;
 
+import java.io.File;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.File;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -59,6 +58,7 @@ public class NUnitTestResultsFileParserTest {
     assertThat(results.skipped()).isEqualTo(7);
     assertThat(results.failures()).isEqualTo(20);
     assertThat(results.errors()).isEqualTo(30);
+    assertThat(results.executionTime()).isEqualTo(51);
   }
 
 }

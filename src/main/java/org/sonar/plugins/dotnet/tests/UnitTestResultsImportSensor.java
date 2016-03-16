@@ -20,12 +20,11 @@
 package org.sonar.plugins.dotnet.tests;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.io.File;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.resources.Project;
-
-import java.io.File;
 
 public class UnitTestResultsImportSensor implements Sensor {
 
@@ -56,6 +55,11 @@ public class UnitTestResultsImportSensor implements Sensor {
     context.saveMeasure(CoreMetrics.TEST_ERRORS, aggregatedResults.errors());
     context.saveMeasure(CoreMetrics.TEST_FAILURES, aggregatedResults.failures());
     context.saveMeasure(CoreMetrics.SKIPPED_TESTS, aggregatedResults.skipped());
+
+    Double executionTime = aggregatedResults.executionTime();
+    if (executionTime != null) {
+      context.saveMeasure(CoreMetrics.TEST_EXECUTION_TIME, executionTime);
+    }
 
     if (aggregatedResults.tests() > 0) {
       context.saveMeasure(CoreMetrics.TEST_SUCCESS_DENSITY, aggregatedResults.passedPercentage());

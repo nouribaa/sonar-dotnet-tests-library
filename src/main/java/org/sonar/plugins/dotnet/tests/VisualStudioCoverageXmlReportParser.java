@@ -64,7 +64,7 @@ public class VisualStudioCoverageXmlReportParser implements CoverageParser {
 
     private void dispatchTags() {
       String tagName;
-      while ((tagName = xmlParserHelper.nextTag()) != null) {
+      while ((tagName = xmlParserHelper.nextStartTag()) != null) {
         if ("module".equals(tagName)) {
           handleModuleTag();
         } else if ("range".equals(tagName)) {
