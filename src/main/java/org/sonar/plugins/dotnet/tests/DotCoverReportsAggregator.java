@@ -23,12 +23,12 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
 
 public class DotCoverReportsAggregator implements CoverageParser {
 
@@ -49,11 +49,13 @@ public class DotCoverReportsAggregator implements CoverageParser {
     File folder = new File(file.getParentFile(), folderName + "/src");
     Preconditions.checkArgument(folder.exists(), "The following report dotCover report HTML sources folder cannot be found: " + folder.getAbsolutePath());
 
-    for (File reportFile : FileUtils.listFiles(folder, new String[] {"html"}, false)) {
+    Collection<File> reportFiles = FileUtils.listFiles(folder, new String[] {"html"}, false);
+    for (File reportFile : reportFiles) {
       if (!isExcluded(reportFile)) {
         parser.parse(reportFile, coverage);
       }
     }
+    Preconditions.checkArgument(!reportFiles.isEmpty(), "No dotCover report HTML source file found under: " + folder.getAbsolutePath());
   }
 
   private static void checkIsHtml(File file) {

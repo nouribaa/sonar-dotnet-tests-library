@@ -19,12 +19,11 @@
  */
 package org.sonar.plugins.dotnet.tests;
 
+import java.io.File;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
-
-import java.io.File;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,6 +53,13 @@ public class DotCoverReportsAggregatorTest {
     thrown.expect(IllegalArgumentException.class);
     thrown.expectMessage("The following dotCover report name should have an extension: no_extension");
     new DotCoverReportsAggregator(mock(DotCoverReportParser.class)).parse(new File("src/test/resources/dotcover_aggregator/no_extension"), mock(Coverage.class));
+  }
+
+  @Test
+  public void empty_folder() {
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("No dotCover report HTML source file found under:");
+    new DotCoverReportsAggregator(mock(DotCoverReportParser.class)).parse(new File("src/test/resources/dotcover_aggregator/empty_folder.html"), mock(Coverage.class));
   }
 
   @Test
