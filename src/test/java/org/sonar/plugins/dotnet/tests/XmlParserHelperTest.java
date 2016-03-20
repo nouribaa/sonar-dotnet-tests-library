@@ -54,6 +54,7 @@ public class XmlParserHelperTest {
     XmlParserHelper xml = new XmlParserHelper(new File("src/test/resources/xml_parser_helper/valid.xml"));
     xml.nextStartTag();
     assertThat(xml.getRequiredDoubleAttribute("myDouble")).isEqualTo(0.123);
+    assertThat(xml.getRequiredDoubleAttribute("myCommaDouble")).isEqualTo(1.234);
 
     thrown.expectMessage("valid.xml");
     thrown.expectMessage("Expected an double instead of \"hello\" for the attribute \"myString\"");

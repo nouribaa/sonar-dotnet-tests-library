@@ -61,4 +61,12 @@ public class NUnitTestResultsFileParserTest {
     assertThat(results.executionTime()).isEqualTo(51);
   }
 
+  @Test
+  public void valid_comma_in_double() throws Exception {
+    UnitTestResults results = new UnitTestResults();
+    new NUnitTestResultsFileParser().parse(new File("src/test/resources/nunit/valid_comma_in_double.xml"), results);
+
+    assertThat(results.executionTime()).isEqualTo(1051);
+  }
+
 }

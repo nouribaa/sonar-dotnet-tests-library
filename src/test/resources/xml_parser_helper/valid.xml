@@ -1,3 +1,3 @@
-<foo myDouble="0.123" myString="hello">
+<foo myDouble="0.123" myCommaDouble="1,234" myString="hello">
   <bar c="0" />
 </foo>

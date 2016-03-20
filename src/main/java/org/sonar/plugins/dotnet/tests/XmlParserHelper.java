@@ -121,6 +121,7 @@ public class XmlParserHelper {
   public double getRequiredDoubleAttribute(String name) {
     String value = getRequiredAttribute(name);
     try {
+      value = value.replace(',', '.');
       return Double.parseDouble(value);
     } catch (NumberFormatException e) {
       throw parseError("Expected an double instead of \"" + value + "\" for the attribute \"" + name + "\"");
