@@ -71,7 +71,10 @@ public class XUnitTestResultsFileParser implements UnitTestResultsParser {
       int failed = xmlParserHelper.getRequiredIntAttribute("failed");
       int skipped = xmlParserHelper.getRequiredIntAttribute("skipped");
       int errors = xmlParserHelper.getIntAttributeOrZero("errors");
-      double executionTime = xmlParserHelper.getRequiredDoubleAttribute("time") * 1000;
+      Double executionTime = xmlParserHelper.getDoubleAttribute("time");
+      if (executionTime != null) {
+        executionTime *= 1000;
+      }
 
       unitTestResults.add(total, passed, skipped, failed, errors, executionTime);
     }

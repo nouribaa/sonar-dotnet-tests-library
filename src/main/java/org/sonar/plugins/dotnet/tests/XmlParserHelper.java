@@ -118,8 +118,13 @@ public class XmlParserHelper {
     }
   }
 
-  public double getRequiredDoubleAttribute(String name) {
-    String value = getRequiredAttribute(name);
+  @Nullable
+  public Double getDoubleAttribute(String name) {
+    String value = getAttribute(name);
+    if (value == null) {
+      return null;
+    }
+
     try {
       value = value.replace(',', '.');
       return Double.parseDouble(value);
