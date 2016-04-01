@@ -118,9 +118,9 @@ public class UnitTestResultsImportSensorTest {
   }
 
   @Test
-  public void should_not_analyze_on_multi_module_modules() {
+  public void should_analyze_on_multi_module_modules() {
     Project project = mock(Project.class);
-    when(project.isRoot()).thenReturn(false);
+    when(project.isRoot()).thenReturn(true);
 
     SensorContext context = mock(SensorContext.class);
 
